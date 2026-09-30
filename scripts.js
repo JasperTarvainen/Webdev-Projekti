@@ -1,6 +1,5 @@
 const API_URL_GEOCODING = "https://geocoding-api.open-meteo.com/v1/search"
 const API_URL_OPEN_METEO_FORE = "https://api.open-meteo.com/v1/forecast"
-const OPEN_WEATHER_KEY = "683737e19ba28f2d8f92960e7709e626"
 const OPEN_WEATHER_API = "https://api.openweathermap.org/data/2.5/forecast"
 
 /* Haetaan elementit */
@@ -24,8 +23,7 @@ locationButton.addEventListener("click", async () => {
         console.log(`GPS-sijainti löytyi: Lat ${lat}, Lon ${lon}`);
 
         try {
-            const weatherData = await getForecastDataMeteo(lat, lon);
-            display(`Sijaintisi sää`, weatherData);
+            await showWeather(`Sijaintisi sää`, lat, lon);
         } catch (error) {
             alert("Virhe.")
         }
@@ -42,11 +40,10 @@ searchButton.addEventListener("click", async () => {
     }
     try {
         const geocodingData = await getGeocodingData(cityName);
-        const weatherData = await getForecastDataMeteo(geocodingData.lat, geocodingData.lon);
-        display(`Kohteen: ${geocodingData.name}, ${geocodingData.country} Sää`, weatherData);
+        await showWeather(`Kohteen: ${geocodingData.name}, ${geocodingData.country} Sää`, geocodingData.lat, geocodingData.lon);
         console.log("Koordinaatit: ", geocodingData);
     } catch (error) {
-        alert("Kaupunging hakemisessa tapahtui virhe, yritä myöhemmin uudelleen.")
+        alert("Kaupungin hakemisessa tapahtui virhe, yritä myöhemmin uudelleen.")
     }
 })
 
@@ -76,36 +73,51 @@ async function getForecastDataMeteo(lat, lon) {
 }
 
 /*Funktio sää datan hakuun openweather api */
-
 async function getForecastDataOpenWeather(lat, lon) {
     const response = await fetch(`${OPEN_WEATHER_API}?lat=${lat}&lon=${lon}&units=metric&appid=${OPEN_WEATHER_KEY}`);
     const data = await response.json();
     return data;
 }
 
+/*Hakee molemmat lähteet ja näyttää ne */
+async function showWeather(locationName, lat, lon) {
+    const meteoData = await getForecastDataMeteo(lat, lon);
+    const openWeatherData = await getForecastDataOpenWeather(lat, lon);
+    display(locationName, meteoData, openWeatherData)
+}
 
-
-
-/*Funktio säätietojen näyttämiseen */
-function display(locationName, weatherData) {
-    document.getElementById("location-name").textContent = locationName;
-
-    const times = weatherData.hourly.time;
-    const temperatures = weatherData.hourly.temperature_2m;
-
-    /* Google gemini AI ehdottama toteutus tapa (seuraavat 4 riviä) */
-    const rows = times.slice(0, 24).map((time, i) => {
-        const timeString = new Date(time).toLocaleTimeString([], {hour: '2-digit'});
-        return `<tr><td>${timeString}</td><td>${temperatures[i]} °C</td></tr>`;
-    }).join("")
-    /*LOPPU */
-    const html = `<p>Päivän ennuste:</p>
+function makeTable(title, rows) {
+    return `<p>${title}:</p>
     <table>
         <thead>
             <tr><th>24h</th><th>Lämpötila</th></tr>
         </thead>
         <tbody>${rows}</tbody>
     </table>`;
+}
+
+
+/*Funktio säätietojen näyttämiseen */
+function display(locationName, meteoData, openWeatherData) {
+    document.getElementById("location-name").textContent = locationName;
+
+    /*Meteo */
+    let meteoRows = "";
+    for (let i = 0; i < 24; i++) {
+        const hour = meteoData.hourly.time[i].slice(11, 16);
+        meteoRows += `<tr><td>${hour}</td><td>${meteoData.hourly.temperature_2m[i]} °C</td></tr>`;
+    }
+    let html = makeTable("Open-Meteo", meteoRows);
+
+    /*Open weather */
+    let openWeatherRows = "";
+    const offset = openWeatherData.city.timezone;
+    for (let i = 0; i<8; i++) {
+        const entry = openWeatherData.list[i];
+        const hour = new Date((entry.dt+offset)*1000).toISOString().slice(11, 16);
+        openWeatherRows += `<tr><td>${hour}</td><td>${entry.temp} °C</td></tr>`;
+    }
+    html += makeTable("OpenWeatherMap", openWeatherRows)
 
     const weatherSection = document.getElementById("weather");
 
