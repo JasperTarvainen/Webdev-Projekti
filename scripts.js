@@ -1,5 +1,7 @@
 const API_URL_GEOCODING = "https://geocoding-api.open-meteo.com/v1/search"
 const API_URL_OPEN_METEO_FORE = "https://api.open-meteo.com/v1/forecast"
+const OPEN_WEATHER_KEY = "683737e19ba28f2d8f92960e7709e626"
+const OPEN_WEATHER_API = "https://api.openweathermap.org/data/2.5/forecast"
 
 /* Haetaan elementit */
 const searchInput = document.getElementById("search-input");
@@ -23,7 +25,7 @@ locationButton.addEventListener("click", async () => {
 
         try {
             const weatherData = await getForecastDataMeteo(lat, lon);
-            display(`Näytetään sijaintisi säätä`, weatherData);
+            display(`Sijaintisi sää`, weatherData);
         } catch (error) {
             alert("Virhe.")
         }
@@ -40,6 +42,8 @@ searchButton.addEventListener("click", async () => {
     }
     try {
         const geocodingData = await getGeocodingData(cityName);
+        const weatherData = await getForecastDataMeteo(geocodingData.lat, geocodingData.lon);
+        display(`Kohteen: ${geocodingData.name}, ${geocodingData.country} Sää`, weatherData);
         console.log("Koordinaatit: ", geocodingData);
     } catch (error) {
         alert("Kaupunging hakemisessa tapahtui virhe, yritä myöhemmin uudelleen.")
@@ -70,6 +74,17 @@ async function getForecastDataMeteo(lat, lon) {
     const data = await response.json();
     return data;
 }
+
+/*Funktio sää datan hakuun openweather api */
+
+async function getForecastDataOpenWeather(lat, lon) {
+    const response = await fetch(`${OPEN_WEATHER_API}?lat=${lat}&lon=${lon}&units=metric&appid=${OPEN_WEATHER_KEY}`);
+    const data = await response.json();
+    return data;
+}
+
+
+
 
 /*Funktio säätietojen näyttämiseen */
 function display(locationName, weatherData) {
