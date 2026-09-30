@@ -78,13 +78,19 @@ function display(locationName, weatherData) {
     const times = weatherData.hourly.time;
     const temperatures = weatherData.hourly.temperature_2m;
 
-    /* Google gemini AI ehdottama toteutus tapa (seuraavat 5 riviä) */
-    const listItems = times.slice(0, 24).map((time, i) => {
+    /* Google gemini AI ehdottama toteutus tapa (seuraavat 4 riviä) */
+    const rows = times.slice(0, 24).map((time, i) => {
         const timeString = new Date(time).toLocaleTimeString([], {hour: '2-digit'});
-        return `<li>Klo ${timeString}: ${temperatures[i]} °C</li>`;
+        return `<tr><td>${timeString}</td><td>${temperatures[i]} °C</td></tr>`;
     }).join("")
-    const html = `<p>Ennuste seuraaville tunneille:</p><ul>${listItems}</ul>`;
     /*LOPPU */
+    const html = `<p>Päivän ennuste:</p>
+    <table>
+        <thead>
+            <tr><th>24h</th><th>Lämpötila</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>`;
 
     const weatherSection = document.getElementById("weather");
 
