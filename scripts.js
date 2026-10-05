@@ -67,7 +67,7 @@ async function getGeocodingData(city) {
 
 /*Funktio sää datan hakuun open-meteo api */
 async function getForecastDataMeteo(lat, lon) {
-    const response = await fetch(`${API_URL_OPEN_METEO_FORE}?latitude=${lat}&longitude=${lon}&hourly=temperature_2m`);
+    const response = await fetch(`${API_URL_OPEN_METEO_FORE}?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code,is_day&forecast_hours=24&timezone=auto`);
     const data = await response.json();
     return data;
 }
@@ -90,7 +90,7 @@ function makeTable(title, rows) {
     return `<p>${title}:</p>
     <table>
         <thead>
-            <tr><th>24h</th><th>Lämpötila</th></tr>
+            <tr><th>24h</th><th>Lämpötila</th><th>Sää</th></tr>
         </thead>
         <tbody>${rows}</tbody>
     </table>`;
@@ -105,7 +105,8 @@ function display(locationName, meteoData, openWeatherData) {
     let meteoRows = "";
     for (let i = 0; i < 24; i++) {
         const hour = meteoData.hourly.time[i].slice(11, 16);
-        meteoRows += `<tr><td>${hour}</td><td>${meteoData.hourly.temperature_2m[i]} °C</td></tr>`;
+        const icon = meteoIcon(meteoData.hourly.weather_code[i], meteoData.hourly.is_day[i] === 1);
+        meteoRows += `<tr><td>${hour}</td><td>${meteoData.hourly.temperature_2m[i]} °C</td><td><i class="fa-solid ${icon}"></i></td></tr>`;
     }
     let html = makeTable("Open-Meteo", meteoRows);
 
@@ -115,7 +116,9 @@ function display(locationName, meteoData, openWeatherData) {
     for (let i = 0; i<8; i++) {
         const entry = openWeatherData.list[i];
         const hour = new Date((entry.dt+offset)*1000).toISOString().slice(11, 16);
-        openWeatherRows += `<tr><td>${hour}</td><td>${entry.temp} °C</td></tr>`;
+        const isDay = entry.weather[0].icon.endsWith("d");
+        const icon = openIcon(entry.weather[0].id, isDay);
+        openWeatherRows += `<tr><td>${hour}</td><td>${entry.main.temp} °C</td><td><i class="fa-solid ${icon}"></i></td></tr>`;
     }
     html += makeTable("OpenWeatherMap", openWeatherRows)
 
@@ -129,3 +132,33 @@ function display(locationName, meteoData, openWeatherData) {
     }
     contentDiv.innerHTML = html;
 }
+
+/*Sää kuvakkeet */
+
+/*Open-Meteo kuvake (fontawesome) */
+function meteoIcon(code, isDay) {
+    if (code === 0) return isDay ? "fa-sun" : "fa-moon";
+    if (code === 1 || code === 2) return isDay ? "fa-cloud-sun" : "fa-cloud-moon";
+    if (code === 3) return "fa-cloud";
+    if (code === 45) return "fa-smog";
+    if (code >= 51 &&  code <= 57) return "fa-cloud-rain";
+    if (code >= 61 && code <=67) return "fa-cloud-showers-heavy";
+    if (code >=71 && code <=77) return "fa-snowflake";
+    if (code >=80 && code <= 82) return "fa-cloud-showers-heavy";
+    if (code >= 95) return "fa-bolt";
+    return "fa-question";
+}
+
+/*Open weather kuvake (fontawesome) */
+function openIcon(id, isDay) {
+    if (id >= 200 && id < 300) return "fa-bolt"
+    if (id >= 300 && id < 400) return "fa-cloud-rain";
+    if (id >= 500 && id < 600) return "fa-cloud-showers-heavy";
+    if (id >= 600 && id < 700) return "fa-snowflake";
+    if (id >= 700 && id < 800) return "fa-smog";
+    if (id === 800) return isDay ? "fa-sun" : "fa-moon";
+    if (id === 801 || id === 802) return isDay ? "fa-cloud-sun" : "fa-cloud-moon";
+    if (id === 803 || id === 804) return "fa-cloud";
+    return "fa-question";
+}
+
