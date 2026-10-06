@@ -6,6 +6,49 @@ const OPEN_WEATHER_API = "https://api.openweathermap.org/data/2.5/forecast"
 const searchInput = document.getElementById("search-input");
 const searchButton = document.getElementById("search-button")
 const locationButton = document.getElementById("location-button");
+const favoritesButton = document.getElementById("favorite-button");
+const favoritesDiv = document.getElementById("favorites");
+
+/* Alustetaan tämän hetkinen sijainti */
+let currentLocation = null;
+
+/*Hae taan suosikit local storagesta (FUNKTION ON TEHNYT CLAUDE AI)*/
+function getFavorites() {
+    return JSON.parse(localStorage.getItem("favorites")) || [];
+}
+
+/* Tallennetaan suosikiksi */
+function saveFavorites(favorites) {
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+}
+
+/*Funktio joka luo suosikeista napin */
+function makeFavorites() {
+    favoritesDiv.innerHTML = "";
+
+    getFavorites().forEach(favorite => {
+        const button = document.createElement("button");
+        button.textContent = favorite.name;
+        button.addEventListener("click", async () => {
+            await showWeather(favorite.name, favorite.lat, favorite.lon)
+        })
+        favoritesDiv.appendChild(button);
+    });
+}
+
+/* Suosikit napin toiminta */
+favoritesButton.addEventListener("click", async () => {
+    if (!currentLocation) {
+        alert("Hea ensin paikkakuntaa, jonka haluat tallentaa suosikkeihin")
+        return;
+    }
+
+    const favorites = getFavorites();
+    favorites.push(currentLocation);
+    saveFavorites(favorites);
+    makeFavorites();
+
+    });
 
 /*Paikannus napin toiminta */
 locationButton.addEventListener("click", async () => {
@@ -40,7 +83,7 @@ searchButton.addEventListener("click", async () => {
     }
     try {
         const geocodingData = await getGeocodingData(cityName);
-        await showWeather(`Kohteen: ${geocodingData.name}, ${geocodingData.country} Sää`, geocodingData.lat, geocodingData.lon);
+        await showWeather(`${geocodingData.name}, ${geocodingData.country}`, geocodingData.lat, geocodingData.lon);
         console.log("Koordinaatit: ", geocodingData);
     } catch (error) {
         alert("Kaupungin hakemisessa tapahtui virhe, yritä myöhemmin uudelleen.")
@@ -83,6 +126,7 @@ async function getForecastDataOpenWeather(lat, lon) {
 async function showWeather(locationName, lat, lon) {
     const meteoData = await getForecastDataMeteo(lat, lon);
     const openWeatherData = await getForecastDataOpenWeather(lat, lon);
+    currentLocation = {name: locationName, lat: lat, lon: lon};
     display(locationName, meteoData, openWeatherData)
 }
 
@@ -99,14 +143,14 @@ function makeTable(title, rows) {
 
 /*Funktio säätietojen näyttämiseen */
 function display(locationName, meteoData, openWeatherData) {
-    document.getElementById("location-name").textContent = locationName;
+    document.getElementById("location-name").textContent = `Sää: ${locationName}`;
 
     /*Meteo */
     let meteoRows = "";
     for (let i = 0; i < 24; i++) {
         const hour = meteoData.hourly.time[i].slice(11, 16);
         const icon = meteoIcon(meteoData.hourly.weather_code[i], meteoData.hourly.is_day[i] === 1);
-        meteoRows += `<tr><td>${hour}</td><td>${meteoData.hourly.temperature_2m[i]} °C</td><td><i class="fa-solid ${icon}"></i></td></tr>`;
+        meteoRows += `<tr><td>${hour}</td><td>${Math.round(meteoData.hourly.temperature_2m[i])} °C</td><td><i class="fa-solid ${icon}"></i></td></tr>`;
     }
     let html = makeTable("Open-Meteo", meteoRows);
 
@@ -118,7 +162,7 @@ function display(locationName, meteoData, openWeatherData) {
         const hour = new Date((entry.dt+offset)*1000).toISOString().slice(11, 16);
         const isDay = entry.weather[0].icon.endsWith("d");
         const icon = openIcon(entry.weather[0].id, isDay);
-        openWeatherRows += `<tr><td>${hour}</td><td>${entry.main.temp} °C</td><td><i class="fa-solid ${icon}"></i></td></tr>`;
+        openWeatherRows += `<tr><td>${hour}</td><td>${Math.round(entry.main.temp)} °C</td><td><i class="fa-solid ${icon}"></i></td></tr>`;
     }
     html += makeTable("OpenWeatherMap", openWeatherRows)
 
@@ -162,3 +206,4 @@ function openIcon(id, isDay) {
     return "fa-question";
 }
 
+makeFavorites();
