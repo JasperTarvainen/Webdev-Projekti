@@ -1,6 +1,7 @@
 const API_URL_GEOCODING = "https://geocoding-api.open-meteo.com/v1/search"
 const API_URL_OPEN_METEO_FORE = "https://api.open-meteo.com/v1/forecast"
 const OPEN_WEATHER_API = "https://api.openweathermap.org/data/2.5/forecast"
+const REVERSE_GEO_API = "http://api.openweathermap.org/geo/1.0/reverse"
 
 /* Haetaan elementit */
 const searchInput = document.getElementById("search-input");
@@ -66,12 +67,30 @@ locationButton.addEventListener("click", async () => {
         console.log(`GPS-sijainti löytyi: Lat ${lat}, Lon ${lon}`);
 
         try {
-            await showWeather(`Sijaintisi sää`, lat, lon);
+            placeName = await getLocationName(lat, lon);
+            await showWeather(placeName, lat, lon);
         } catch (error) {
             alert("Virhe.")
         }
     })
 })
+
+/* Funktio paikan nimen hakuun koordinaateilla */
+async function getLocationName(lat, lon) {
+    const response = await fetch(`${REVERSE_GEO_API}?lat=${lat}&lon=${lon}&limit=1&appid=${OPEN_WEATHER_KEY}`);
+
+    const data = await response.json();
+
+    if (data.length === 0) {
+        alert("Paikan nimeä ei löytynyt");
+    }
+
+    const place = data[0];
+    if (place.local_names && place.local_names.fi) {
+        return place.local_names.fi;
+    }
+    return place.name;
+}
 
 /* Haku napin toiminta */
 searchButton.addEventListener("click", async () => {
