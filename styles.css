@@ -1,4 +1,93 @@
-td i.fa-solid {
-    width: 20px;
-    height: 20px
+body {
+    background-color: gray;
+}
+
+/* Haku ja napit */
+.search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.search h1 {
+    font-size: 36px;
+}
+.search-controls {
+    font-size: 24px;
+    justify-content: end;
+}
+
+.search-controls input {
+    min-width: 200px;
+    max-width: 300px;
+    min-height: 30px;
+    border-radius: 8px;
+    border: none;
+}
+
+button {
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+    color: black;
+    background-color: white;
+    border: none;
+}
+
+button:hover {
+    background-color: lightblue;
+}
+
+#favorites {
+    margin-bottom: 25px;
+}
+
+#favorites button {
+    margin: 5px
+}
+
+/* Sää */
+#weather {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 3px 3px black;
+}
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+#favorite-button {
+    background-color: gray;
+    color: white;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+#favorite-button:hover {
+    background-color: lightblue;
+}
+
+/* Taulukot */
+table {
+    width: 100%;
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+
+th, td {
+    padding: 8px 10px;
+    text-align: left;
+}
+
+/* Ikonit (GOOLE GEMINI)*/
+td i.fa-solid, td svg.svg-inline--fa {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    color: #3498db;
 }
