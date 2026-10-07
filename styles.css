@@ -91,3 +91,15 @@ td i.fa-solid, td svg.svg-inline--fa {
     text-align: center;
     color: #3498db;
 }
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px
+    }
+
+    .search {
+        flex-direction: column;
+        gap: 12px
+    }
+
+}    
