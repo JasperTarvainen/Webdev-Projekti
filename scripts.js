@@ -129,7 +129,7 @@ async function getGeocodingData(city) {
 
 /*Funktio sää datan hakuun open-meteo api */
 async function getForecastDataMeteo(lat, lon) {
-    const response = await fetch(`${API_URL_OPEN_METEO_FORE}?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code,is_day&forecast_hours=24&timezone=auto`);
+    const response = await fetch(`${API_URL_OPEN_METEO_FORE}?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code,is_day&current_weather=true&forecast_hours=24&timezone=auto`);
     const data = await response.json();
     return data;
 }
@@ -164,6 +164,27 @@ function makeTable(title, rows) {
 function display(locationName, meteoData, openWeatherData) {
     document.getElementById("location-name").textContent = `Sää: ${locationName}`;
 
+    const weatherSection = document.getElementById("weather");
+
+    /* 1. Näytetään nykyinen sää (Open-Meteo current_weather) */
+    let currentWeatherDiv = document.getElementById("current-weather");
+    if (!currentWeatherDiv) {
+        currentWeatherDiv = document.createElement("div");
+        currentWeatherDiv.id = "current-weather";
+        weatherSection.appendChild(currentWeatherDiv);
+    }
+
+    if (meteoData.current_weather) {
+        const current = meteoData.current_weather;
+        const icon = meteoIcon(current.weathercode, current.is_day === 1);
+        currentWeatherDiv.style.display = "block";
+        currentWeatherDiv.className = "current-weather-card";
+        currentWeatherDiv.innerHTML = `
+            <h3> Sää ${locationName} Juuri nyt (Open-Meteo)</h3>
+            <i class="fa-solid ${icon}"></i>
+            <div class="current-temp">${current.temperature} °C</div>
+        `;
+    }
     /*Meteo */
     let meteoRows = "";
     for (let i = 0; i < 24; i++) {
@@ -184,8 +205,6 @@ function display(locationName, meteoData, openWeatherData) {
         openWeatherRows += `<tr><td>${hour}</td><td>${Math.round(entry.main.temp)} °C</td><td><i class="fa-solid ${icon}"></i></td></tr>`;
     }
     html += makeTable("OpenWeatherMap", openWeatherRows)
-
-    const weatherSection = document.getElementById("weather");
 
     let contentDiv = document.getElementById("weather-content");
     if (!contentDiv) {

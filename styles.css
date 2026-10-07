@@ -72,6 +72,16 @@ button:hover {
     background-color: lightblue;
 }
 
+/* Tämän hetkinen sää */
+.current-weather-card {
+    background-color: white;
+    color: black;
+    padding: 20px;
+    border: 8px;
+    text-align: center;
+    box-shadow: 0 4px 4px black;
+}
+
 /* Taulukot */
 table {
     width: 100%;
