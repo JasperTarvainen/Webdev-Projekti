@@ -2,6 +2,7 @@ const API_URL_GEOCODING = "https://geocoding-api.open-meteo.com/v1/search"
 const API_URL_OPEN_METEO_FORE = "https://api.open-meteo.com/v1/forecast"
 const OPEN_WEATHER_API = "https://api.openweathermap.org/data/2.5/forecast"
 const REVERSE_GEO_API = "http://api.openweathermap.org/geo/1.0/reverse"
+const OPEN_WEATHER_KEY = "683737e19ba28f2d8f92960e7709e626"
 
 /* Haetaan elementit */
 const searchInput = document.getElementById("search-input");
